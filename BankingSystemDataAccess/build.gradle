@@ -1,0 +1,13 @@
+dependencies {
+    implementation project(':BankingSystemDomain')
+
+    implementation "org.hibernate.orm:hibernate-core:${rootProject.ext.hibernateVersion}"
+    runtimeOnly "org.postgresql:postgresql:${rootProject.ext.postgresqlVersion}"
+    runtimeOnly "org.slf4j:slf4j-simple:${rootProject.ext.slf4jVersion}"
+
+    compileOnly "org.projectlombok:lombok:${rootProject.ext.lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${rootProject.ext.lombokVersion}"
+
+    testCompileOnly "org.projectlombok:lombok:${rootProject.ext.lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${rootProject.ext.lombokVersion}"
+}

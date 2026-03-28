@@ -1,0 +1,14 @@
+plugins {
+    id 'application'
+}
+
+
+dependencies {
+    implementation project(':BankingSystemDomain')
+    implementation project(':BankingSystemServices')
+    implementation project(':BankingSystemDataAccess')
+}
+
+application {
+    mainClass = 'ru.nursafin.Application'
+}

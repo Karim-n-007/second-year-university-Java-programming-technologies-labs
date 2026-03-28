@@ -9,6 +9,10 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/BankingSystemDataAccess" />
+            <option value="$PROJECT_DIR$/BankingSystemDomain" />
+            <option value="$PROJECT_DIR$/BankingSystemPresentation" />
+            <option value="$PROJECT_DIR$/BankingSystemServices" />
           </set>
         </option>
       </GradleProjectSettings>

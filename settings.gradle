@@ -1,1 +1,6 @@
-rootProject.name = 'car-dealership'
+rootProject.name = 'BankingSystem'
+
+include 'BankingSystemDataAccess'
+include 'BankingSystemDomain'
+include 'BankingSystemServices'
+include 'BankingSystemPresentation'
