@@ -11,4 +11,6 @@ public interface AccountDao {
     List<Account> findByOwnerId(Long ownerId);
 
     Account save(Account account);
+
+    List<Account> findAll();
 }

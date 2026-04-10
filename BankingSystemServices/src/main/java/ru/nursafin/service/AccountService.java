@@ -292,6 +292,40 @@ public class AccountService {
         }
     }
 
+    public List<AccountView> getAccountsByUserId(Long userId) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+
+        try {
+            EntityManagerContext.bind(entityManager);
+
+            requireUser(userId);
+
+
+            return accountDao.findByOwnerId(userId)
+                    .stream()
+                    .map(this::toView)
+                    .toList();
+        } finally {
+            EntityManagerContext.unbind();
+            entityManager.close();
+        }
+    }
+
+    public List<AccountView> getAllAccounts() {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            EntityManagerContext.bind(entityManager);
+
+            return accountDao.findAll()
+                    .stream()
+                    .map(this::toView)
+                    .toList();
+        } finally {
+            EntityManagerContext.unbind();
+            entityManager.close();
+        }
+    }
+
     private AccountView toView(Account account) {
         return new AccountView(
                 account.getAccountId(),

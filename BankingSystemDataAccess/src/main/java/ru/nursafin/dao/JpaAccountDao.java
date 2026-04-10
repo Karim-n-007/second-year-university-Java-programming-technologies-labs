@@ -42,6 +42,17 @@ public class JpaAccountDao implements AccountDao {
         return getEntityManager().merge(account);
     }
 
+    @Override
+    public List<Account> findAll() {
+        return getEntityManager()
+                .createQuery(
+                        "select a " +
+                                "from Account a " +
+                                "left join fetch a.owner ",
+                        Account.class
+                ).getResultList();
+    }
+
     private EntityManager getEntityManager() {
         return EntityManagerContext.getCurrent();
     }

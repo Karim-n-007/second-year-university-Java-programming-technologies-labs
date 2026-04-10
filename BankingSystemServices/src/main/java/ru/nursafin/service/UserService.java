@@ -13,6 +13,7 @@ import ru.nursafin.model.BankUser;
 import ru.nursafin.model.Gender;
 import ru.nursafin.model.HairColor;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -159,6 +160,35 @@ public class UserService {
             }
 
             throw e;
+        } finally {
+            EntityManagerContext.unbind();
+            entityManager.close();
+        }
+    }
+
+    public Set<UserView> getFriends(Long userId) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+
+        try {
+            EntityManagerContext.bind(entityManager);
+
+            BankUser bankUser = requireUser(userId);
+
+            return bankUser.getFriends().stream().map(this::toView).collect(Collectors.toSet());
+
+        } finally {
+            EntityManagerContext.unbind();
+            entityManager.close();
+        }
+    }
+
+    public List<UserView> getUsers(Gender gender, HairColor hairColor) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+
+        try {
+            EntityManagerContext.bind(entityManager);
+
+            return userDao.findAllByFilter(gender, hairColor).stream().map(this::toView).collect(Collectors.toList());
         } finally {
             EntityManagerContext.unbind();
             entityManager.close();
