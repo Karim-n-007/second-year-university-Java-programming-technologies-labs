@@ -1,54 +1,64 @@
 package ru.nursafin.model;
 
-import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import ru.nursafin.exception.ValidationException;
 import ru.nursafin.money.Money;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
-@Entity
-@Table(name = "accounts")
 public class Account {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long accountId;
+    private final Long accountId;
 
-    @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "balance", nullable = false))
     private Money balance;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private BankUser owner;
+    private final Long ownerId;
 
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Operation> operations = new ArrayList<>();
+    private final String ownerLogin;
 
-    public Account(BankUser owner) {
-        this.balance = new Money();
-        this.owner = owner;
-        owner.addAccount(this);
+    private final List<Operation> operations;
+
+    public Account(Long ownerId, String ownerLogin) {
+        this(null, new Money(), ownerId, ownerLogin, new ArrayList<>());
     }
 
-    public Account(BankUser owner, Money balance) {
-        this.owner = owner;
+    public Account(Long accountId, Money balance, Long ownerId, String ownerLogin, List<Operation> operations) {
+        if (ownerId == null) {
+            throw new ValidationException("ownerId is null");
+        }
+        if (balance == null) {
+            throw new ValidationException("balance is null");
+        }
+
+        this.accountId = accountId;
         this.balance = balance;
-        owner.addAccount(this);
+        this.ownerId = ownerId;
+        this.ownerLogin = ownerLogin;
+        this.operations = operations;
     }
 
     public void increaseBalance(Money amount) {
-        this.balance = balance.increase(amount);
+        validateAmount(amount);
+        balance = balance.increase(amount);
     }
 
     public void decreaseBalance(Money amount) {
-        this.balance = balance.decrease(amount);
+        validateAmount(amount);
+        balance = balance.decrease(amount);
     }
 
     public void addOperation(Operation operation) {
+        if (operation == null) {
+            throw new ValidationException("Operation must not be null");
+        }
         operations.add(operation);
+    }
+
+    private void validateAmount(Money amount) {
+        if (amount == null) {
+            throw new ValidationException("amount must not be null");
+        }
     }
 }

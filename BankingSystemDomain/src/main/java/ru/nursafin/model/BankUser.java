@@ -1,50 +1,33 @@
 package ru.nursafin.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import ru.nursafin.exception.ValidationException;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
-@NoArgsConstructor
 @Getter
-@Entity
-@Table(name = "bank_users")
+@AllArgsConstructor
 public class BankUser {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @Column(unique = true, nullable = false, updatable = false)
     private String login;
 
-    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
     private int age;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Gender gender;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, name = "hair_color")
     private HairColor hairColor;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_friends",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "friend_id"),
-            uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "friend_id"})
-    )
-    private Set<BankUser> friends = new HashSet<>();
+    private Set<Long> friends = new HashSet<>();
 
-    @OneToMany(mappedBy = "owner")
-    private Set<Account> accounts = new HashSet<>();
+    private Set<Long> accounts = new HashSet<>();
 
     public BankUser(String login, String name, int age, Gender gender, HairColor hairColor) {
         this.login = login;
@@ -58,23 +41,34 @@ public class BankUser {
     }
 
     public void addFriend(BankUser friend) {
-        if (this.equals(friend)) {
-            throw new ValidationException("You can't be a friend");
-        }
-        friends.add(friend);
-        friend.friends.add(this);
+        validateFriend(friend);
+        friends.add(friend.getUserId());
+        friend.friends.add(userId);
     }
 
     public void removeFriend(BankUser friend) {
-        friends.remove(friend);
-        friend.friends.remove(this);
+        validateFriend(friend);
+        friends.remove(friend.getUserId());
+        friend.friends.remove(userId);
     }
 
-    public void addAccount(Account account) {
-        accounts.add(account);
+    public void addAccountId(Long accountId) {
+        if (accountId != null) {
+            accounts.add(accountId);
+        }
     }
 
     public boolean isFriendWith(BankUser friend) {
-        return friends.contains(friend);
+        return friend != null && friend.getUserId() != null &&
+        friends.contains(friend.getUserId());
+    }
+
+    private void validateFriend(BankUser friend) {
+        if (friend == null || friend.getUserId() == null || userId == null) {
+            throw new ValidationException("Invalid user");
+        }
+        if (Objects.equals(userId, friend.getUserId())) {
+            throw new ValidationException("You can't be a friend");
+        }
     }
 }

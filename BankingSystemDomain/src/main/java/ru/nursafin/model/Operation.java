@@ -1,62 +1,57 @@
 package ru.nursafin.model;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import ru.nursafin.exception.ValidationException;
 import ru.nursafin.money.Money;
 
 
 import java.time.LocalDateTime;
 
 @Getter
-@Entity
-@Table(name = "operations")
 @NoArgsConstructor
 public class Operation {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long operationId;
 
-    @ManyToOne()
-    @JoinColumn(name = "account_id", nullable = false)
-    private Account account;
+    private Long accountId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private OperationType operationType;
 
-    @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "amount", nullable = false))
     private Money amount;
 
-    @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "commission_amount", nullable = false))
     private Money commissionAmount;
 
-    @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "balance_after", nullable = false))
     private Money balanceAfter;
 
-    @Column(nullable = false)
     private LocalDateTime dateTime;
 
-    @Column(name = "related_account_id")
     private Long relatedAccountId;
 
-    public Operation(
-            Account account,
-            OperationType operationType,
-            Money amount,
-            Money commissionAmount,
-            Money balanceAfter,
-            Long relatedAccountId
-    ) {
-        this.account = account;
+    public Operation(Long operationId, Long accountId, OperationType operationType, Money amount, Money commissionAmount, Money balanceAfter, LocalDateTime dateTime, Long relatedAccountId) {
+        if (accountId == null) {
+            throw new ValidationException("Account id is null");
+        }
+        if (operationType == null) {
+            throw new ValidationException("Operation type is null");
+        }
+        if (amount == null || commissionAmount == null | balanceAfter == null) {
+            throw new ValidationException("Amount and commission amount are null");
+        }
+        if (dateTime == null) {
+            throw new ValidationException("Date is null");
+        }
+
+        this.accountId = accountId;
         this.operationType = operationType;
         this.amount = amount;
         this.commissionAmount = commissionAmount;
         this.balanceAfter = balanceAfter;
         this.relatedAccountId = relatedAccountId;
-        this.dateTime = LocalDateTime.now();
+        this.dateTime = dateTime;
+        this.operationId = operationId;
+    }
+
+    public Operation(Long accountId, OperationType operationType, Money amount, Money commissionAmount, Money balanceAfter, Long relatedAccountId) {
+        this(null, accountId, operationType, amount, commissionAmount, balanceAfter, LocalDateTime.now(), relatedAccountId);
     }
 }

@@ -2,10 +2,9 @@ package ru.nursafin.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.nursafin.dto.ErrorResponse;
+import ru.nursafin.dto.response.ErrorResponse;
 import ru.nursafin.exception.DuplicateLoginException;
 import ru.nursafin.exception.NotFoundException;
 import ru.nursafin.exception.ValidationException;

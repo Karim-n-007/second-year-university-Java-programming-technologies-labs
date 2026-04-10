@@ -1,9 +1,6 @@
 package ru.nursafin;
 
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.EntityTransaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.nursafin.dao.AccountDao;
 import ru.nursafin.dao.UserDao;
-import ru.nursafin.dto.AccountView;
 import ru.nursafin.dto.TransferReceipt;
 import ru.nursafin.exception.ValidationException;
 import ru.nursafin.model.Account;
@@ -24,6 +20,7 @@ import ru.nursafin.service.AccountService;
 import ru.nursafin.service.TransferCommissionPolicy;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 
 import static org.mockito.Mockito.*;
 
@@ -35,90 +32,59 @@ public class AccountServiceTest {
     @Mock
     private UserDao userDao;
 
-    @Mock
-    private EntityManagerFactory entityManagerFactory;
-
-    @Mock
-    EntityManager entityManager;
-
-    @Mock
-    private EntityTransaction transaction;
-
     private AccountService accountService;
 
     @BeforeEach
     void setUp() {
-        when(entityManagerFactory.createEntityManager()).thenReturn(entityManager);
-        when(entityManager.getTransaction()).thenReturn(transaction);
-
-        accountService = new AccountService(
-                accountDao,
-                userDao,
-                entityManagerFactory,
-                new TransferCommissionPolicy()
-        );
+        accountService = new AccountService(accountDao, userDao, new TransferCommissionPolicy());
     }
 
 
     @Test
     void depositShouldIncreaseBalanceAndSaveOperation() {
-        BankUser owner = mock(BankUser.class);
-        when(owner.getLogin()).thenReturn("login");
-
-        Account account = spy(new Account(owner, new Money(new BigDecimal("100.00"))));
-        doReturn(10L).when(account).getAccountId();
-
+        Account account = new Account(10L, new Money(new BigDecimal("100.00")), 1L, "login", new ArrayList<>());
         when(accountDao.findById(10L)).thenReturn(account);
+        when(accountDao.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        AccountView result = accountService.deposit(10L, new Money(new BigDecimal("25.00")));
+        Account result = accountService.deposit(10L, new Money(new BigDecimal("25.00")));
 
-        Assertions.assertEquals(0, result.balance().compareTo(new BigDecimal("125.00")));
+        Assertions.assertEquals(0, result.getBalance().getAmount().compareTo(new BigDecimal("125.00")));
         Assertions.assertEquals(0, account.getBalance().getAmount().compareTo(new BigDecimal("125.00")));
 
-        Operation operation = account.getOperations().get(0);
+        Operation operation = account.getOperations().getFirst();
         Assertions.assertEquals(OperationType.DEPOSIT, operation.getOperationType());
         Assertions.assertEquals(0, operation.getAmount().getAmount().compareTo(new BigDecimal("25.00")));
         Assertions.assertEquals(0, operation.getCommissionAmount().getAmount().compareTo(BigDecimal.ZERO));
         Assertions.assertEquals(0, operation.getBalanceAfter().getAmount().compareTo(new BigDecimal("125.00")));
 
         verify(accountDao).save(account);
-        verify(transaction).begin();
-        verify(transaction).commit();
     }
 
     @Test
     void withdrawShouldDecreaseBalanceAndSaveOperation() {
-        BankUser owner = mock(BankUser.class);
-        when(owner.getLogin()).thenReturn("login");
-
-        Account account = spy(new Account(owner, new Money(new BigDecimal("100.00"))));
-        when(account.getAccountId()).thenReturn(10L);
+        Account account = new Account(10L, new Money(new BigDecimal("100.00")), 1L, "login", new ArrayList<>());
         when(accountDao.findById(10L)).thenReturn(account);
+        when(accountDao.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        AccountView result = accountService.withdraw(10L, new Money(new BigDecimal("40.00")));
+        Account result = accountService.withdraw(10L, new Money(new BigDecimal("40.00")));
 
-        Assertions.assertEquals(0, result.balance().compareTo(new BigDecimal("60.00")));
+        Assertions.assertEquals(0, result.getBalance().getAmount().compareTo(new BigDecimal("60.00")));
         Assertions.assertEquals(0, account.getBalance().getAmount().compareTo(new BigDecimal("60.00")));
         Assertions.assertEquals(1, account.getOperations().size());
 
-        Operation operation = account.getOperations().get(0);
+        Operation operation = account.getOperations().getFirst();
         Assertions.assertEquals(OperationType.WITHDRAW, operation.getOperationType());
         Assertions.assertEquals(0, operation.getAmount().getAmount().compareTo(new BigDecimal("40.00")));
         Assertions.assertEquals(0, operation.getCommissionAmount().getAmount().compareTo(BigDecimal.ZERO));
         Assertions.assertEquals(0, operation.getBalanceAfter().getAmount().compareTo(new BigDecimal("60.00")));
 
         verify(accountDao).save(account);
-        verify(transaction).begin();
-        verify(transaction).commit();
     }
 
     @Test
     void withdrawShouldThrowExceptionWhenNotEnoughBalance() {
-        BankUser owner = mock(BankUser.class);
-        Account account = spy(new Account(owner, new Money(new BigDecimal("100.00"))));
-
+        Account account = new Account(10L, new Money(new BigDecimal("100.00")), 1L, "login", new ArrayList<>());
         when(accountDao.findById(10L)).thenReturn(account);
-        when(transaction.isActive()).thenReturn(true);
 
         Assertions.assertThrows(
                 ValidationException.class,
@@ -126,7 +92,6 @@ public class AccountServiceTest {
         );
 
         verify(accountDao, never()).save(any());
-        verify(transaction).rollback();
     }
 
     @Test
@@ -138,14 +103,15 @@ public class AccountServiceTest {
         when(receiver.getUserId()).thenReturn(2L);
         when(sender.isFriendWith(receiver)).thenReturn(true);
 
-        Account source = spy(new Account(sender, new Money(new BigDecimal("100.00"))));
-        when(source.getAccountId()).thenReturn(10L);
+        Account source = new Account(10L, new Money(new BigDecimal("100.00")), 1L, "sender", new ArrayList<>());
+        Account target = new Account(20L, new Money(BigDecimal.ZERO), 2L, "receiver", new ArrayList<>());
 
-        Account target = spy(new Account(receiver, new Money(BigDecimal.ZERO)));
-        when(target.getAccountId()).thenReturn(20L);
 
         when(accountDao.findById(10L)).thenReturn(source);
         when(accountDao.findById(20L)).thenReturn(target);
+        when(accountDao.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userDao.findById(1L)).thenReturn(sender);
+        when(userDao.findById(2L)).thenReturn(receiver);
 
         TransferReceipt receipt = accountService.transfer(10L, 20L, new Money(new BigDecimal("50.00")));
 
@@ -159,12 +125,12 @@ public class AccountServiceTest {
         Assertions.assertEquals(1, source.getOperations().size());
         Assertions.assertEquals(1, target.getOperations().size());
 
-        Operation sourceOperation = source.getOperations().get(0);
+        Operation sourceOperation = source.getOperations().getFirst();
         Assertions.assertEquals(OperationType.TRANSFER_OUT, sourceOperation.getOperationType());
         Assertions.assertEquals(0, sourceOperation.getAmount().getAmount().compareTo(new BigDecimal("50.00")));
         Assertions.assertEquals(0, sourceOperation.getCommissionAmount().getAmount().compareTo(new BigDecimal("1.50")));
 
-        Operation targetOperation = target.getOperations().get(0);
+        Operation targetOperation = target.getOperations().getFirst();
         Assertions.assertEquals(OperationType.TRANSFER_IN, targetOperation.getOperationType());
         Assertions.assertEquals(0, targetOperation.getAmount().getAmount().compareTo(new BigDecimal("50.00")));
         Assertions.assertEquals(0, targetOperation.getCommissionAmount().getAmount().compareTo(BigDecimal.ZERO));

@@ -1,71 +1,100 @@
 package ru.nursafin.dao;
 
 
-import jakarta.persistence.EntityManager;
-import ru.nursafin.entityManagerContext.EntityManagerContext;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Repository;
 import ru.nursafin.model.BankUser;
 import ru.nursafin.model.Gender;
 import ru.nursafin.model.HairColor;
+import ru.nursafin.persistence.entity.BankUserEntity;
+import ru.nursafin.persistence.mapper.PersistenceDomainMapper;
+import ru.nursafin.persistence.repository.BankUserRepository;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+@Repository
+@AllArgsConstructor
 public class JpaUserDao implements UserDao {
+    private final BankUserRepository bankUserRepository;
+    private final PersistenceDomainMapper mapper;
+
+
     @Override
     public BankUser findById(Long id) {
-        return getEntityManager()
-                .createQuery(
-                        "select distinct u from BankUser u " +
-                                "left join fetch u.friends " +
-                                "left join fetch u.accounts " +
-                                "where u.userId = :id",
-                        BankUser.class
-                ).setParameter("id", id)
-                .getResultStream()
-                .findFirst()
+        return bankUserRepository.findDetailedById(id)
+                .map(mapper::toDomain)
                 .orElse(null);
     }
 
     @Override
     public BankUser findByLogin(String login) {
-        return getEntityManager()
-                .createQuery(
-                        "select u from BankUser u where u.login =:login",
-                        BankUser.class
-                )
-                .setParameter("login", login)
-                .getResultStream()
-                .findFirst()
+        return bankUserRepository.findByLogin(login)
+                .map(mapper::toDomain)
                 .orElse(null);
     }
 
     @Override
     public BankUser save(BankUser bankUser) {
+        BankUserEntity entity;
+
         if (bankUser.getUserId() == null) {
-            getEntityManager().persist(bankUser);
-            return bankUser;
+            entity = new BankUserEntity (
+                    bankUser.getLogin(),
+                    bankUser.getName(),
+                    bankUser.getAge(),
+                    bankUser.getGender(),
+                    bankUser.getHairColor()
+            );
+            entity = bankUserRepository.save(entity);
+        } else {
+            entity = bankUserRepository.findDetailedById(bankUser.getUserId()).orElseThrow();
+            entity.updateProfile(
+                    bankUser.getName(),
+                    bankUser.getAge(),
+                    bankUser.getGender(),
+                    bankUser.getHairColor()
+            );
         }
 
-        return getEntityManager().merge(bankUser);
+        syncFriends(entity, bankUser.getFriends());
+
+        entity = bankUserRepository.save(entity);
+
+        return mapper.toDomain(bankUserRepository.save(entity));
     }
 
     @Override
     public List<BankUser> findAllByFilter(Gender gender, HairColor hairColor) {
-        return getEntityManager()
-                .createQuery(
-                        "select distinct u " +
-                                "from BankUser u " +
-                                "left join fetch u.friends " +
-                                "left join fetch u.accounts " +
-                                "where (:gender is null or u.gender = :gender) " +
-                                "and (:hairColor is null or u.hairColor = :hairColor) ",
-                        BankUser.class)
-                .setParameter("gender", gender)
-                .setParameter("hairColor", hairColor)
-                .getResultList();
+        return bankUserRepository.findAllByFilter(gender, hairColor)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 
+    @Override
+    public Set<BankUser> findFriends(Long userId) {
+        return bankUserRepository.findWithFriendsById(userId)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toSet());
+    }
 
-    private EntityManager getEntityManager() {
-        return EntityManagerContext.getCurrent();
+    private void syncFriends(BankUserEntity entity, Set<Long> friendIds) {
+        Set<Long> ids = friendIds == null ? Set.of() : new HashSet<>(friendIds);
+        ids.remove(entity.getUserId());
+
+        List<BankUserEntity> desiredFriends = bankUserRepository.findAllById(ids);
+
+        entity.getFriends().clear();
+
+        for (BankUserEntity friend : desiredFriends) {
+            if (!Objects.equals(friend.getUserId(), entity.getUserId())) {
+                entity.getFriends().add(friend);
+            }
+        }
     }
 }

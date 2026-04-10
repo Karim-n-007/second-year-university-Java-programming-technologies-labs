@@ -48,5 +48,7 @@ subprojects {
         testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
         testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
+        implementation 'io.swagger.core.v3:swagger-annotations-jakarta:2.2.43'
+
     }
 }

@@ -15,9 +15,10 @@ dependencies {
     implementation 'org.springframework:spring-context'
     implementation 'org.springframework:spring-tx'
 
-    testImplementation "org.junit.jupiter:junit-jupiter:${rootProject.ext.junitVersion}"
-    testImplementation "org.mockito:mockito-core:${rootProject.ext.mockitoVersion}"
-    testImplementation "org.mockito:mockito-junit-jupiter:${rootProject.ext.mockitoVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter"
+    testImplementation "org.mockito:mockito-core"
+    testImplementation "org.mockito:mockito-junit-jupiter"
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 test {

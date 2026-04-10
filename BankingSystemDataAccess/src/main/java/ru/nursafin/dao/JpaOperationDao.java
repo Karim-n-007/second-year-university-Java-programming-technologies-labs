@@ -1,27 +1,28 @@
 package ru.nursafin.dao;
 
 import jakarta.persistence.EntityManager;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Repository;
 import ru.nursafin.entityManagerContext.EntityManagerContext;
 import ru.nursafin.model.Operation;
 import ru.nursafin.model.OperationType;
+import ru.nursafin.persistence.mapper.PersistenceDomainMapper;
+import ru.nursafin.persistence.repository.OperationRepository;
 
 import java.util.List;
 
+@Repository
+@AllArgsConstructor
 public class JpaOperationDao implements OperationDao {
+    private final OperationRepository operationRepository;
+    private final PersistenceDomainMapper mapper;
 
     @Override
     public List<Operation> findByFilter(OperationType operationType, Long accountId) {
-        return getEntityManager()
-                .createQuery(
-                        "select o " +
-                                "from Operation o " +
-                                "where (:operationType is null or o.operationType = :operationType) " +
-                                "and (:accountId is null or o.account.accountId = :accountId) " +
-                                "order by o.dateTime desc",
-                        Operation.class)
-                .setParameter("operationType", operationType)
-                .setParameter("accountId", accountId)
-                .getResultList();
+        return operationRepository.findByFilter(operationType, accountId)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 
     private EntityManager getEntityManager() {

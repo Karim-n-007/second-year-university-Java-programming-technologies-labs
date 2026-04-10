@@ -1,10 +1,12 @@
 package ru.nursafin.service;
 
+import org.springframework.stereotype.Service;
 import ru.nursafin.model.BankUser;
 import ru.nursafin.money.Money;
 
 import java.math.BigDecimal;
 
+@Service
 public class TransferCommissionPolicy {
     private static final BigDecimal OWN_RATE = new BigDecimal("0");
     private static final BigDecimal FRIEND_RATE = new BigDecimal("0.03");

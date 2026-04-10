@@ -5,6 +5,7 @@ import ru.nursafin.model.Gender;
 import ru.nursafin.model.HairColor;
 
 import java.util.List;
+import java.util.Set;
 
 public interface UserDao {
     BankUser findById(Long id);
@@ -14,4 +15,6 @@ public interface UserDao {
     BankUser save(BankUser bankUser);
 
     List<BankUser> findAllByFilter(Gender gender, HairColor hairColor);
+
+    Set<BankUser> findFriends(Long userId);
 }

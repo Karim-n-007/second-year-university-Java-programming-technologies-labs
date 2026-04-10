@@ -7,7 +7,6 @@ import ru.nursafin.exception.ValidationException;
 import java.math.BigDecimal;
 
 @Getter
-@Embeddable
 public class Money {
     private BigDecimal amount;
 
