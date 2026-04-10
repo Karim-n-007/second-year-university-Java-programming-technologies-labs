@@ -55,7 +55,7 @@ public class JpaAccountDao implements AccountDao {
         }
 
 
-
+        syncOperations(entity, account.getOperations());
 
 
         return mapper.toDomain(accountRepository.save(entity));
