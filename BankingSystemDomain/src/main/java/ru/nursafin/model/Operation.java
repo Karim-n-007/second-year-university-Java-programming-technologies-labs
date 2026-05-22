@@ -34,7 +34,7 @@ public class Operation {
         if (operationType == null) {
             throw new ValidationException("Operation type is null");
         }
-        if (amount == null || commissionAmount == null | balanceAfter == null) {
+        if (amount == null || commissionAmount == null || balanceAfter == null) {
             throw new ValidationException("Amount and commission amount are null");
         }
         if (dateTime == null) {

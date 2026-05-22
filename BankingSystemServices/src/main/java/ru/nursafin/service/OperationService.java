@@ -14,7 +14,7 @@ import java.util.List;
 public class OperationService {
     private final OperationDao operationDao;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Operation> getOperationsByFilter(OperationType operationType, Long accountId) {
         return operationDao.findByFilter(operationType, accountId);
     }

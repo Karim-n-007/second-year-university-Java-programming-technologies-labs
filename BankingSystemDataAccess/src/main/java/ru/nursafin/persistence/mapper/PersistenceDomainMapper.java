@@ -11,6 +11,7 @@ import ru.nursafin.persistence.entity.MoneyEmbeddable;
 import ru.nursafin.persistence.entity.OperationEntity;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,6 +27,7 @@ public class PersistenceDomainMapper {
         return new BankUser(
                 entity.getUserId(),
                 entity.getLogin(),
+                entity.getPasswordHash(),
                 entity.getName(),
                 entity.getAge(),
                 entity.getGender(),
@@ -52,7 +54,7 @@ public class PersistenceDomainMapper {
         List<Operation> operations = entity.getOperations()
                 .stream()
                 .map(this::toDomain)
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
 
         return new Account(
                 entity.getAccountId(),

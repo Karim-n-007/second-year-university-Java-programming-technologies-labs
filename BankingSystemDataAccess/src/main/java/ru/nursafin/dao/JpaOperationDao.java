@@ -1,9 +1,7 @@
 package ru.nursafin.dao;
 
-import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
-import ru.nursafin.entityManagerContext.EntityManagerContext;
 import ru.nursafin.model.Operation;
 import ru.nursafin.model.OperationType;
 import ru.nursafin.persistence.mapper.PersistenceDomainMapper;
@@ -23,9 +21,5 @@ public class JpaOperationDao implements OperationDao {
                 .stream()
                 .map(mapper::toDomain)
                 .toList();
-    }
-
-    private EntityManager getEntityManager() {
-        return EntityManagerContext.getCurrent();
     }
 }

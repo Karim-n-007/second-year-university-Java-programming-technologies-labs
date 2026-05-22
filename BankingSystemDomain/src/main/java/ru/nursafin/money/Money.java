@@ -1,6 +1,5 @@
 package ru.nursafin.money;
 
-import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import ru.nursafin.exception.ValidationException;
 

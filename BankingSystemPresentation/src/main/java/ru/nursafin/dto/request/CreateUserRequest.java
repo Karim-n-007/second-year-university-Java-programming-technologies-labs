@@ -17,6 +17,10 @@ public class CreateUserRequest {
     @NotBlank
     private String login;
 
+    @Schema(description = "user raw password", example = "Agf#42#&sNZ284A")
+    @NotBlank
+    private String password;
+
     @Schema(description = "Unique user login", example = "Igor")
     @NotBlank
     private String name;

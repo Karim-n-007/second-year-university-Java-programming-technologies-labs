@@ -90,12 +90,13 @@ public class JpaAccountDao implements AccountDao {
             }
 
             setField(operationEntity, "operationType", operation.getOperationType());
-            setField(operationEntity, "amount", operation.getAmount());
+            setField(operationEntity, "amount", mapper.toEmbeddableMoney(operation.getAmount()));
             setField(operationEntity, "commissionAmount", mapper.toEmbeddableMoney(operation.getCommissionAmount()));
             setField(operationEntity, "balanceAfter", mapper.toEmbeddableMoney(operation.getBalanceAfter()));
             setField(operationEntity, "localDateTime", operation.getDateTime());
             setField(operationEntity, "relatedAccountId", operation.getRelatedAccountId());
 
+            operationEntity.setAccount(entity);
             entity.getOperations().add(operationEntity);
         }
     }

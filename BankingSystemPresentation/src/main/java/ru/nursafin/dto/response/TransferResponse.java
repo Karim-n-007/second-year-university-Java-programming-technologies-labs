@@ -1,7 +1,6 @@
 package ru.nursafin.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.el.lang.ELArithmetic;
 
 import java.math.BigDecimal;
 

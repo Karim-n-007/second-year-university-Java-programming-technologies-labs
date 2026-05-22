@@ -1,9 +1,7 @@
 package ru.nursafin.model;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import ru.nursafin.exception.ValidationException;
 
 import java.util.HashSet;
@@ -17,6 +15,8 @@ public class BankUser {
 
     private String login;
 
+    private String passwordHash;
+
     private String name;
 
     private int age;
@@ -29,8 +29,9 @@ public class BankUser {
 
     private Set<Long> accounts = new HashSet<>();
 
-    public BankUser(String login, String name, int age, Gender gender, HairColor hairColor) {
+    public BankUser(String login, String passwordHash, String name, int age, Gender gender, HairColor hairColor) {
         this.login = login;
+        this.passwordHash = passwordHash;
         this.name = name;
         if (age <= 0) {
             throw new ValidationException("Age must be greater than 0");

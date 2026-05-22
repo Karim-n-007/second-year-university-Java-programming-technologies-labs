@@ -1,7 +1,6 @@
 package ru.nursafin.persistence.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import ru.nursafin.model.Gender;
@@ -24,6 +23,9 @@ public class BankUserEntity {
     private String login;
 
     @Column(nullable = false)
+    private String passwordHash;
+
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
@@ -37,8 +39,9 @@ public class BankUserEntity {
     @Column(nullable = false)
     private Gender gender;
 
-    public BankUserEntity(String login, String name, int age, Gender gender, HairColor hairColor) {
+    public BankUserEntity(String login, String passwordHash, String name, int age, Gender gender, HairColor hairColor) {
         this.login = login;
+        this.passwordHash = passwordHash;
         this.name = name;
         this.age = age;
         this.gender = gender;

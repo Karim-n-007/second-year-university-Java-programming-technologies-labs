@@ -1,6 +1,5 @@
 package ru.nursafin.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import ru.nursafin.exception.ValidationException;
 import ru.nursafin.money.Money;

@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.nursafin.dao.AccountDao;
 import ru.nursafin.dao.UserDao;
 import ru.nursafin.dto.TransferReceipt;
-import ru.nursafin.exception.DuplicateLoginException;
 import ru.nursafin.exception.NotFoundException;
 import ru.nursafin.exception.ValidationException;
 import ru.nursafin.model.Account;
@@ -31,12 +30,12 @@ public class AccountService {
         return accountDao.save(new Account(owner.getUserId(), owner.getLogin()));
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Account getAccount(Long accountId) {
         return requireAccount(accountId);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public BigDecimal getBalance(Long accountId) {
         return requireAccount(accountId).getBalance().getAmount();
     }
@@ -80,7 +79,7 @@ public class AccountService {
     @Transactional
     public TransferReceipt transfer(Long sourceAccountId, Long targetAccountId, Money amount) {
             if (sourceAccountId.equals(targetAccountId)) {
-                throw new DuplicateLoginException("Target account the same as source account id");
+                throw new ValidationException("Target account the same as source account id");
             }
 
             Account source = requireAccount(sourceAccountId);
@@ -133,15 +132,18 @@ public class AccountService {
             );
     }
 
+    @Transactional(readOnly = true)
     public List<Operation> getHistory(Long accountId) {
        return requireAccount(accountId).getOperations();
     }
 
+    @Transactional(readOnly = true)
     public List<Account> getAccountsByUserId(Long userId) {
             requireUser(userId);
             return accountDao.findByOwnerId(userId);
     }
 
+    @Transactional(readOnly = true)
     public List<Account> getAllAccounts() {
         return accountDao.findAll();
     }

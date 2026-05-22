@@ -44,6 +44,7 @@ public class JpaUserDao implements UserDao {
         if (bankUser.getUserId() == null) {
             entity = new BankUserEntity (
                     bankUser.getLogin(),
+                    bankUser.getPasswordHash(),
                     bankUser.getName(),
                     bankUser.getAge(),
                     bankUser.getGender(),
