@@ -10,3 +10,18 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+    template:
+      reply-timeout: 5000
+
+app:
+  rabbit:
+    rates-exchange: rates.exchange
+    rates-queue: bank.rates.queue
+    request-queue: rates.request.queue
+
