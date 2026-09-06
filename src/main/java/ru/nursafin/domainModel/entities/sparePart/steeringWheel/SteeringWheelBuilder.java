@@ -77,6 +77,6 @@ public class SteeringWheelBuilder {
             throw new DomainValidationException("some information is null");
         }
 
-        return new SteeringWheel(type, material, id, name, price);
+        return new SteeringWheel(type, material, id, name, price, compatibleCarModelsId);
     }
 }

@@ -16,7 +16,7 @@ public class InMemoryOrderReadyCarModelRepository implements OrderReadyCarReposi
 
     @Override
     public UUID save(OrderReadyCarModel orderReadyCarModel) {
-        UUID orderId = madeCorrectId(dataStorage.orders);
+        UUID orderId = orderReadyCarModel.getId();
         dataStorage.orders.put(orderId, orderReadyCarModel);
 
         return orderId;
@@ -42,15 +42,5 @@ public class InMemoryOrderReadyCarModelRepository implements OrderReadyCarReposi
     @Override
     public void deleteById(UUID id) {
         dataStorage.orders.remove(id);
-    }
-
-    private UUID madeCorrectId(HashMap<UUID, OrderReadyCarModel> OrderReadyCarModelsMap) {
-        while (true) {
-            UUID orderId = UUID.randomUUID();
-
-            if (!OrderReadyCarModelsMap.containsKey(orderId)) {
-                return orderId;
-            }
-        }
     }
 }

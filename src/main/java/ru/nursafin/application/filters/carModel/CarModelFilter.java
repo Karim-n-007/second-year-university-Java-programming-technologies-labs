@@ -4,8 +4,10 @@ import ru.nursafin.domainModel.entities.sparePart.body.BodyType;
 import ru.nursafin.domainModel.entities.sparePart.engine.Drive;
 import ru.nursafin.domainModel.entities.sparePart.engine.FuelType;
 import ru.nursafin.domainModel.entities.sparePart.gearbox.GearboxType;
+import ru.nursafin.domainModel.entities.valueObjects.EngineDisplacement;
 import ru.nursafin.domainModel.entities.valueObjects.Money;
 import ru.nursafin.domainModel.entities.valueObjects.Power;
+import ru.nursafin.domainModel.exceptions.DomainValidationException;
 
 public class CarModelFilter {
     private Money minBasePrice;
@@ -13,6 +15,8 @@ public class CarModelFilter {
     private Money minTotalPrice;
     private Money maxTotalPrice;
     private String brand;
+    private String model;
+    private String color;
     private BodyType bodyType;
     private FuelType fuelType;
     private GearboxType gearboxType;
@@ -20,6 +24,8 @@ public class CarModelFilter {
     private String interiorColor;
     private Power minPower;
     private Power maxPower;
+    private EngineDisplacement minEngineDisplacement;
+    private EngineDisplacement maxEngineDisplacement;
 
     public CarModelFilter withMinBasePrice(Money minBasePrice) {
         this.minBasePrice = minBasePrice;
@@ -44,6 +50,16 @@ public class CarModelFilter {
 
     public CarModelFilter withBrand(String brand) {
         this.brand = brand;
+        return this;
+    }
+
+    public CarModelFilter withModel(String model) {
+        this.model = model;
+        return this;
+    }
+
+    public CarModelFilter withColor(String color) {
+        this.color = color;
         return this;
     }
 
@@ -82,6 +98,22 @@ public class CarModelFilter {
         return this;
     }
 
+    public CarModelFilter withMinEngineDisplacement(EngineDisplacement minEngineDisplacement) {
+        this.minEngineDisplacement = minEngineDisplacement;
+        return this;
+    }
+
+    public CarModelFilter withMaxEngineDisplacement(EngineDisplacement maxEngineDisplacement) {
+        this.maxEngineDisplacement = maxEngineDisplacement;
+        return this;
+    }
+
+    public void validate() {
+        if (model != null && brand == null) {
+            throw new DomainValidationException("Model filter is available only when brand is chosen");
+        }
+    }
+
     public Money getMinBasePrice() {
         return minBasePrice;
     }
@@ -100,6 +132,14 @@ public class CarModelFilter {
 
     public String getBrand() {
         return brand;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public String getColor() {
+        return color;
     }
 
     public BodyType getBodyType() {
@@ -128,5 +168,13 @@ public class CarModelFilter {
 
     public Power getMaxPower() {
         return maxPower;
+    }
+
+    public EngineDisplacement getMinEngineDisplacement() {
+        return minEngineDisplacement;
+    }
+
+    public EngineDisplacement getMaxEngineDisplacement() {
+        return maxEngineDisplacement;
     }
 }

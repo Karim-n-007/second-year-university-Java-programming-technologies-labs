@@ -1,9 +1,10 @@
 package ru.nursafin.application.services.sparePartService.gearbox;
 
 import ru.nursafin.application.repositories.entitiesRepository.carModelRepository.CarModelRepository;
+import ru.nursafin.application.repositories.entitiesRepository.sparePartRepository.GearboxSparePartRepository;
 import ru.nursafin.domainModel.entities.sparePart.gearbox.Gearbox;
 import ru.nursafin.domainModel.entities.valueObjects.Money;
-import ru.nursafin.application.repositories.entitiesRepository.sparePartRepository.GearboxSparePartRepository;
+import ru.nursafin.domainModel.exceptions.DomainValidationException;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,18 +19,31 @@ public class GearboxService {
     }
 
     public UUID createNewGearbox(Gearbox gearbox) {
+        if (gearbox == null) {
+            throw new DomainValidationException("missing required component \"Gearbox\"");
+        }
+
         return gearboxRepository.save(gearbox);
     }
 
     public void updateGearboxPrice(UUID gearboxId, Money price) {
-        Gearbox gearbox = gearboxRepository.findById(gearboxId);
+        if (price == null) {
+            throw new DomainValidationException("price is null");
+        }
 
+        Gearbox gearbox = gearboxRepository.findById(gearboxId);
         gearbox.setPrice(price);
+
+        gearboxRepository.save(gearbox);
     }
 
-    public void addNewCarCompatibleWithGearbox(Gearbox gearbox, UUID carModelId) {
+    public void addNewCarCompatibleWithGearbox(UUID gearboxId, UUID carModelId) {
+        Gearbox gearbox = gearboxRepository.findById(gearboxId);
         carModelRepository.findById(carModelId);
+
         gearbox.addCompatibleCar(carModelId);
+
+        gearboxRepository.save(gearbox);
     }
 
     public Gearbox findById(UUID gearboxId) {
@@ -38,5 +52,11 @@ public class GearboxService {
 
     public List<Gearbox> getAllGearboxes() {
         return gearboxRepository.findAll();
+    }
+
+    public void deleteById(UUID gearboxId) {
+        gearboxRepository.findById(gearboxId);
+
+        gearboxRepository.deleteById(gearboxId);
     }
 }

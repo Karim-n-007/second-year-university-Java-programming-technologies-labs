@@ -15,6 +15,7 @@ public class CarModel {
     private final UUID id;
     private final String name;
     private final String brand;
+    private final String color;
     private final Money basePrice;
     private final Drive drive;
 
@@ -25,10 +26,11 @@ public class CarModel {
     private final Interior interior;
     private final Wheels wheels;
 
-    public CarModel(UUID id, String name, String brand, Money basePrice, Drive drive, Body body, Engine engine, Gearbox gearbox, SteeringWheel steeringWheel, Interior interior, Wheels wheels) {
+    public CarModel(UUID id, String name, String brand, String color, Money basePrice, Drive drive, Body body, Engine engine, Gearbox gearbox, SteeringWheel steeringWheel, Interior interior, Wheels wheels) {
         this.id = id;
         this.name = name;
         this.brand = brand;
+        this.color = color;
         this.basePrice = basePrice;
         this.drive = drive;
         this.body = body;
@@ -49,6 +51,10 @@ public class CarModel {
 
     public String getBrand() {
         return brand;
+    }
+
+    public String getColor() {
+        return color;
     }
 
     public Money getBasePrice() {

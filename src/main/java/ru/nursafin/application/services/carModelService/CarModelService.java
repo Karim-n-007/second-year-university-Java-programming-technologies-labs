@@ -1,5 +1,6 @@
 package ru.nursafin.application.services.carModelService;
 
+import ru.nursafin.application.repositories.entitiesRepository.carModelRepository.CarModelRepository;
 import ru.nursafin.application.repositories.entitiesRepository.sparePartRepository.*;
 import ru.nursafin.domainModel.entities.car.CarModel;
 import ru.nursafin.domainModel.entities.car.CarModelBuilder;
@@ -11,9 +12,10 @@ import ru.nursafin.domainModel.entities.sparePart.interior.Interior;
 import ru.nursafin.domainModel.entities.sparePart.steeringWheel.SteeringWheel;
 import ru.nursafin.domainModel.entities.sparePart.wheels.Wheels;
 import ru.nursafin.domainModel.entities.valueObjects.Money;
-import ru.nursafin.application.repositories.entitiesRepository.carModelRepository.CarModelRepository;
-import java.util.UUID;
+import ru.nursafin.domainModel.exceptions.DomainValidationException;
 
+import java.util.List;
+import java.util.UUID;
 
 public class CarModelService {
     private final CarModelRepository carModelRepository;
@@ -35,32 +37,36 @@ public class CarModelService {
         this.wheelsRepository = wheelsRepository;
     }
 
+    public UUID createNewCarModel(String name, String brand, String color, Money basePrice, Drive drive, UUID bodyId,
+                                  UUID engineId, UUID gearboxId, UUID steeringWheelId, UUID interiorId, UUID wheelsId) {
+        return saveCarModel(UUID.randomUUID(), name, brand, color, basePrice, drive, bodyId, engineId, gearboxId,
+                steeringWheelId, interiorId, wheelsId);
+    }
 
-    public void createNewCarModel(String name, String brand, Money basePrice, Drive drive, UUID bodyId, UUID engineId, UUID gearboxId, UUID steeringWheelId, UUID interiorId, UUID wheelsId) {
-        UUID newCarModelId = UUID.randomUUID();
+    public void updateCarModel(UUID carModelId, String name, String brand, String color, Money basePrice, Drive drive,
+                               UUID bodyId, UUID engineId, UUID gearboxId, UUID steeringWheelId, UUID interiorId,
+                               UUID wheelsId) {
+        if (carModelId == null) {
+            throw new DomainValidationException("missing required field \"car model\"");
+        }
+        carModelRepository.findById(carModelId);
 
-        Body body = bodyRepository.findById(bodyId);
-        Engine engine = engineRepository.findById(engineId);
-        Gearbox gearbox = gearboxRepository.findById(gearboxId);
-        SteeringWheel steeringWheel = steeringWheelRepository.findById(steeringWheelId);
-        Interior interior = interiorRepository.findById(interiorId);
-        Wheels wheels = wheelsRepository.findById(wheelsId);
+        saveCarModel(carModelId, name, brand, color, basePrice, drive, bodyId, engineId, gearboxId,
+                steeringWheelId, interiorId, wheelsId);
+    }
 
-        CarModel carModel = new CarModelBuilder()
-                .withId(newCarModelId)
-                .withName(name)
-                .withBrand(brand)
-                .withPrice(basePrice)
-                .withDrive(drive)
-                .withBody(body)
-                .withEngine(engine)
-                .withGearbox(gearbox)
-                .withSteeringWheel(steeringWheel)
-                .withInterior(interior)
-                .withWheels(wheels)
-                .build();
+    public CarModel findById(UUID carModelId) {
+        return carModelRepository.findById(carModelId);
+    }
 
-        carModelRepository.save(carModel);
+    public List<CarModel> getAllCarModels() {
+        return carModelRepository.findAll();
+    }
+
+    public void deleteById(UUID carModelId) {
+        carModelRepository.findById(carModelId);
+
+        carModelRepository.deleteById(carModelId);
     }
 
     public Money getModelCarPrice(CarModel carModel) {
@@ -71,5 +77,33 @@ public class CarModelService {
                 .plus(carModel.getSteeringWheel().getPrice())
                 .plus(carModel.getInterior().getPrice())
                 .plus(carModel.getWheels().getPrice());
+    }
+
+    private UUID saveCarModel(UUID carModelId, String name, String brand, String color, Money basePrice, Drive drive,
+                              UUID bodyId, UUID engineId, UUID gearboxId, UUID steeringWheelId, UUID interiorId,
+                              UUID wheelsId) {
+        Body body = bodyRepository.findById(bodyId);
+        Engine engine = engineRepository.findById(engineId);
+        Gearbox gearbox = gearboxRepository.findById(gearboxId);
+        SteeringWheel steeringWheel = steeringWheelRepository.findById(steeringWheelId);
+        Interior interior = interiorRepository.findById(interiorId);
+        Wheels wheels = wheelsRepository.findById(wheelsId);
+
+        CarModel carModel = new CarModelBuilder()
+                .withId(carModelId)
+                .withName(name)
+                .withBrand(brand)
+                .withColor(color)
+                .withPrice(basePrice)
+                .withDrive(drive)
+                .withBody(body)
+                .withEngine(engine)
+                .withGearbox(gearbox)
+                .withSteeringWheel(steeringWheel)
+                .withInterior(interior)
+                .withWheels(wheels)
+                .build();
+
+        return carModelRepository.save(carModel);
     }
 }

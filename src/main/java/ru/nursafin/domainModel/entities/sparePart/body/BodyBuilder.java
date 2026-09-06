@@ -68,6 +68,6 @@ public class BodyBuilder {
             throw new DomainValidationException("some information is null");
         }
 
-        return new Body(bodyType, id, name, price);
+        return new Body(bodyType, id, name, price, compatibleCarModelsId);
     }
 }

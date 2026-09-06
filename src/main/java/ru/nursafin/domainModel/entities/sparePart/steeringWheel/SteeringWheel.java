@@ -17,11 +17,16 @@ public class SteeringWheel implements SparePart {
     private final Set<UUID> compatibleCarModelsId = new HashSet<>();
 
     public SteeringWheel(SteeringWheelType type, SteeringWheelMaterial material, UUID id, String name, Money price) {
+        this(type, material, id, name, price, Set.of());
+    }
+
+    public SteeringWheel(SteeringWheelType type, SteeringWheelMaterial material, UUID id, String name, Money price, Set<UUID> compatibleCarModelsId) {
         this.type = type;
         this.material = material;
         this.id = id;
         this.name = name;
         this.price = price;
+        this.compatibleCarModelsId.addAll(compatibleCarModelsId);
     }
 
 
@@ -56,7 +61,7 @@ public class SteeringWheel implements SparePart {
 
     @Override
     public Set<UUID> getCompatibleCars() {
-        return compatibleCarModelsId;
+        return Set.copyOf(compatibleCarModelsId);
     }
 
     public SteeringWheelType getType() {

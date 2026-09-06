@@ -80,7 +80,7 @@ public class CarModelServiceTest {
         when(wheelsSparePartRepository.findById(wheelsId)).thenReturn(wheels);
 
 
-        carModelService.createNewCarModel(name, brand, money, drive, bodyId, engineId, gearboxId, steeringWheelId, interiorId, wheelsId);
+        carModelService.createNewCarModel(name, brand, "white", money, drive, bodyId, engineId, gearboxId, steeringWheelId, interiorId, wheelsId);
 
         verify(bodySparePartRepository).findById(bodyId);
         verify(engineSparePartRepository).findById(engineId);

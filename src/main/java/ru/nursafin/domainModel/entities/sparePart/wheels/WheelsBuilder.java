@@ -67,6 +67,6 @@ public class WheelsBuilder {
             throw new DomainValidationException("some information is null");
         }
 
-        return new Wheels(season, id, name, price);
+        return new Wheels(season, id, name, price, compatibleCarModelsId);
     }
 }

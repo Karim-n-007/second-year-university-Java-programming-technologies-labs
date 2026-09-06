@@ -2,31 +2,42 @@ package ru.nursafin.domainModel.entities.order;
 
 import ru.nursafin.domainModel.entities.car.CarModel;
 import ru.nursafin.domainModel.entities.valueObjects.Money;
-import ru.nursafin.domainModel.statuses.CarPurchaseOrderStatus;
-import ru.nursafin.domainModel.users.Employee.Employee;
-import ru.nursafin.domainModel.users.client.Client;
+import ru.nursafin.domainModel.exceptions.DomainValidationException;
+import ru.nursafin.domainModel.statuses.ReadyCarOrderStatus;
+
+import java.util.UUID;
 
 public class OrderReadyCarModel {
-    private CarPurchaseOrderStatus status = new CarPurchaseOrderStatus.HasBeenPlaced();
+    private ReadyCarOrderStatus status = ReadyCarOrderStatus.PLACED;
 
-    private final Client client;
-    private final Employee employee;
+    private final UUID id;
+    private final UUID clientId;
+    private final UUID employeeId;
     private final CarModel carModel;
     private final Money priceAtCreateOrderMoment;
 
-    public OrderReadyCarModel(Client client, Employee employee, CarModel carModel, Money priceAtCreateMoment) {
-        this.client = client;
-        this.employee = employee;
+    public OrderReadyCarModel(UUID id, UUID clientId, UUID employeeId, CarModel carModel, Money priceAtCreateMoment) {
+        if (id == null || clientId == null || employeeId == null || carModel == null || priceAtCreateMoment == null) {
+            throw new DomainValidationException("Some information about order is null");
+        }
+
+        this.id = id;
+        this.clientId = clientId;
+        this.employeeId = employeeId;
         this.carModel = carModel;
         this.priceAtCreateOrderMoment = priceAtCreateMoment;
     }
 
-    public Client getClient() {
-        return client;
+    public UUID getId() {
+        return id;
     }
 
-    public Employee getEmployee() {
-        return employee;
+    public UUID getClientId() {
+        return clientId;
+    }
+
+    public UUID getEmployeeId() {
+        return employeeId;
     }
 
     public CarModel getCarModel() {
@@ -37,11 +48,19 @@ public class OrderReadyCarModel {
         return priceAtCreateOrderMoment;
     }
 
-    public CarPurchaseOrderStatus getStatus() {
+    public ReadyCarOrderStatus getStatus() {
         return status;
     }
 
-    public void setStatus(CarPurchaseOrderStatus status) {
-        this.status = status;
+    public void changeStatus(ReadyCarOrderStatus newStatus) {
+        if (newStatus == null) {
+            throw new DomainValidationException("Order status is null");
+        }
+        if (!status.canChangeTo(newStatus)) {
+            throw new DomainValidationException(
+                    "Order " + id + " cannot change status from " + status + " to " + newStatus);
+        }
+
+        this.status = newStatus;
     }
 }

@@ -17,11 +17,16 @@ public class Interior implements SparePart {
     private final Set<UUID> compatibleCarModelsId = new HashSet<>();
 
     public Interior(InteriorType interiorType, String color, UUID id, String name, Money price) {
+        this(interiorType, color, id, name, price, Set.of());
+    }
+
+    public Interior(InteriorType interiorType, String color, UUID id, String name, Money price, Set<UUID> compatibleCarModelsId) {
         this.interiorType = interiorType;
         this.color = color;
         this.id = id;
         this.name = name;
         this.price = price;
+        this.compatibleCarModelsId.addAll(compatibleCarModelsId);
     }
 
 
@@ -52,7 +57,7 @@ public class Interior implements SparePart {
 
     @Override
     public Set<UUID> getCompatibleCars() {
-        return compatibleCarModelsId;
+        return Set.copyOf(compatibleCarModelsId);
     }
 
     public InteriorType getInteriorType() {

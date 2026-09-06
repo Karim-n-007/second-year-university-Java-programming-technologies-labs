@@ -4,13 +4,13 @@ import ru.nursafin.application.filters.order.OrderFilter;
 import ru.nursafin.application.repositories.entitiesRepository.carModelRepository.CarModelRepository;
 import ru.nursafin.application.repositories.entitiesRepository.orderRepository.orderReadyCarModelRepository.OrderReadyCarRepository;
 import ru.nursafin.application.repositories.usersRepository.clientRepository.ClientRepository;
-import ru.nursafin.application.repositories.usersRepository.employeeRepository.EmployeeRepository;
+import ru.nursafin.application.services.orderService.EmployeeAssignment;
 import ru.nursafin.domainModel.entities.car.CarModel;
 import ru.nursafin.domainModel.entities.order.OrderReadyCarModel;
 import ru.nursafin.domainModel.entities.valueObjects.Money;
-import ru.nursafin.domainModel.statuses.CarPurchaseOrderStatus;
+import ru.nursafin.domainModel.exceptions.DomainValidationException;
+import ru.nursafin.domainModel.statuses.ReadyCarOrderStatus;
 import ru.nursafin.domainModel.users.Employee.Employee;
-import ru.nursafin.domainModel.users.client.Client;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,34 +18,49 @@ import java.util.UUID;
 public class ReadyCarModelOrderService {
     private final OrderReadyCarRepository orderReadyCarRepository;
     private final ClientRepository clientRepository;
-    private final EmployeeRepository employeeRepository;
     private final CarModelRepository carModelRepository;
+    private final EmployeeAssignment employeeAssignment;
 
-    public ReadyCarModelOrderService(OrderReadyCarRepository orderReadyCarRepository, ClientRepository clientRepository, EmployeeRepository employeeRepository, CarModelRepository carModelRepository) {
+    public ReadyCarModelOrderService(OrderReadyCarRepository orderReadyCarRepository,
+                                     ClientRepository clientRepository,
+                                     CarModelRepository carModelRepository,
+                                     EmployeeAssignment employeeAssignment) {
         this.orderReadyCarRepository = orderReadyCarRepository;
         this.clientRepository = clientRepository;
-        this.employeeRepository = employeeRepository;
         this.carModelRepository = carModelRepository;
+        this.employeeAssignment = employeeAssignment;
     }
 
-    public UUID createOrder(UUID clientId, UUID employeeId, UUID carModelId) {
-        Client client = clientRepository.findById(clientId);
-        Employee employee = employeeRepository.findById(employeeId);
+    public UUID createOrder(UUID clientId, UUID carModelId) {
+        if (clientId == null) {
+            throw new DomainValidationException("missing required field \"client\"");
+        }
+        if (carModelId == null) {
+            throw new DomainValidationException("missing required field \"car model\"");
+        }
+
+        clientRepository.findById(clientId);
         CarModel carModel = carModelRepository.findById(carModelId);
+        Employee employee = employeeAssignment.assignSalesManager();
 
         Money carPrice = calculateReadyCarPrice(carModel);
 
-        OrderReadyCarModel order = new OrderReadyCarModel(client, employee, carModel, carPrice);
+        OrderReadyCarModel order = new OrderReadyCarModel(
+                UUID.randomUUID(), clientId, employee.getId(), carModel, carPrice);
 
         return orderReadyCarRepository.save(order);
+    }
+
+    public OrderReadyCarModel findById(UUID orderId) {
+        return orderReadyCarRepository.findById(orderId);
     }
 
     public List<OrderReadyCarModel> findAll(OrderFilter filter) {
         return orderReadyCarRepository.findAll().stream()
                 .filter(order -> filter.getEmployeeId() == null ||
-                        order.getEmployee().getId().equals(filter.getEmployeeId()))
+                        order.getEmployeeId().equals(filter.getEmployeeId()))
                 .filter(order -> filter.getClientId() == null ||
-                        order.getClient().getId().equals(filter.getClientId()))
+                        order.getClientId().equals(filter.getClientId()))
                 .toList();
     }
 
@@ -53,18 +68,32 @@ public class ReadyCarModelOrderService {
         return orderReadyCarRepository.findAll();
     }
 
-    public void setStatus(CarPurchaseOrderStatus status, UUID orderId) {
-        OrderReadyCarModel orderReadyCarModel = orderReadyCarRepository.findById(orderId);
-        orderReadyCarModel.setStatus(status);
+    public void changeStatus(UUID orderId, ReadyCarOrderStatus newStatus) {
+        OrderReadyCarModel order = orderReadyCarRepository.findById(orderId);
+        order.changeStatus(newStatus);
+
+        orderReadyCarRepository.save(order);
     }
 
-    private Money calculateReadyCarPrice(CarModel carModel) {
-        return carModel.getBasePrice()
+    public void deleteById(UUID orderId) {
+        orderReadyCarRepository.findById(orderId);
+
+        orderReadyCarRepository.deleteById(orderId);
+    }
+
+    public Money calculateReadyCarPrice(CarModel carModel) {
+        Money price = carModel.getBasePrice()
                 .plus(carModel.getBody().getPrice())
                 .plus(carModel.getEngine().getPrice())
                 .plus(carModel.getGearbox().getPrice())
                 .plus(carModel.getSteeringWheel().getPrice())
                 .plus(carModel.getInterior().getPrice())
                 .plus(carModel.getWheels().getPrice());
+
+        if (price.isNegative()) {
+            throw new DomainValidationException("Car price cannot be negative");
+        }
+
+        return price;
     }
 }

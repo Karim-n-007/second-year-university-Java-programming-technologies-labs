@@ -16,10 +16,15 @@ public class Gearbox implements SparePart {
     private final Set<UUID> compatibleCarModelsId = new HashSet<>();
 
     public Gearbox(GearboxType type, UUID id, String name, Money price) {
+        this(type, id, name, price, Set.of());
+    }
+
+    public Gearbox(GearboxType type, UUID id, String name, Money price, Set<UUID> compatibleCarModelsId) {
         this.type = type;
         this.id = id;
         this.name = name;
         this.price = price;
+        this.compatibleCarModelsId.addAll(compatibleCarModelsId);
     }
 
 
@@ -50,7 +55,7 @@ public class Gearbox implements SparePart {
 
     @Override
     public Set<UUID> getCompatibleCars() {
-        return compatibleCarModelsId;
+        return Set.copyOf(compatibleCarModelsId);
     }
 
     public GearboxType getGearboxType() {

@@ -3,6 +3,7 @@ package ru.nursafin.application.services.orders.customCarModelOrder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -11,7 +12,7 @@ import ru.nursafin.application.repositories.entitiesRepository.carModelRepositor
 import ru.nursafin.application.repositories.entitiesRepository.orderRepository.orderCustomCarRepository.OrderCustomCarRepository;
 import ru.nursafin.application.repositories.entitiesRepository.sparePartRepository.*;
 import ru.nursafin.application.repositories.usersRepository.clientRepository.ClientRepository;
-import ru.nursafin.application.repositories.usersRepository.employeeRepository.EmployeeRepository;
+import ru.nursafin.application.services.orderService.EmployeeAssignment;
 import ru.nursafin.application.services.orderService.customCarModelOrderService.CustomCarModelOrderService;
 import ru.nursafin.domainModel.entities.car.CarModel;
 import ru.nursafin.domainModel.entities.order.OrderCustomCarModel;
@@ -22,9 +23,10 @@ import ru.nursafin.domainModel.entities.sparePart.interior.Interior;
 import ru.nursafin.domainModel.entities.sparePart.steeringWheel.SteeringWheel;
 import ru.nursafin.domainModel.entities.sparePart.wheels.Wheels;
 import ru.nursafin.domainModel.entities.valueObjects.Money;
+import ru.nursafin.domainModel.exceptions.DomainValidationException;
 import ru.nursafin.domainModel.exceptions.IncompatibleComponentException;
+import ru.nursafin.domainModel.statuses.CustomCarOrderStatus;
 import ru.nursafin.domainModel.users.Employee.Employee;
-import ru.nursafin.domainModel.users.client.Client;
 
 import java.util.List;
 import java.util.Set;
@@ -39,13 +41,13 @@ public class CustomCarModelOrderServiceTest {
     private OrderCustomCarRepository orderCustomCarRepository;
 
     @Mock
-    private EmployeeRepository employeeRepository;
-
-    @Mock
     private ClientRepository clientRepository;
 
     @Mock
     private CarModelRepository carModelRepository;
+
+    @Mock
+    private EmployeeAssignment employeeAssignment;
 
     @Mock
     private BodySparePartRepository bodySparePartRepository;
@@ -68,22 +70,18 @@ public class CustomCarModelOrderServiceTest {
     @InjectMocks
     private CustomCarModelOrderService customCarModelOrderService;
 
-
     @Test
-    void shouldCreateOrder() {
-        UUID employeeId = UUID.randomUUID();
+    void shouldCreateOrderAndAssignSalesManagerAutomatically() {
         UUID clientId = UUID.randomUUID();
         UUID carModelId = UUID.randomUUID();
+        UUID employeeId = UUID.randomUUID();
         UUID bodyId = UUID.randomUUID();
         UUID engineId = UUID.randomUUID();
         UUID gearboxId = UUID.randomUUID();
         UUID steeringWheelId = UUID.randomUUID();
         UUID interiorId = UUID.randomUUID();
         UUID wheelsId = UUID.randomUUID();
-        UUID expectedSavedOrderId = UUID.randomUUID();
 
-        Employee employee = mock(Employee.class);
-        Client client = mock(Client.class);
         CarModel carModel = mock(CarModel.class);
         Body body = mock(Body.class);
         Engine engine = mock(Engine.class);
@@ -91,9 +89,8 @@ public class CustomCarModelOrderServiceTest {
         Wheels wheels = mock(Wheels.class);
         SteeringWheel steeringWheel = mock(SteeringWheel.class);
         Gearbox gearbox = mock(Gearbox.class);
+        Employee employee = mock(Employee.class);
 
-        when(employeeRepository.findById(employeeId)).thenReturn(employee);
-        when(clientRepository.findById(clientId)).thenReturn(client);
         when(carModelRepository.findById(carModelId)).thenReturn(carModel);
         when(bodySparePartRepository.findById(bodyId)).thenReturn(body);
         when(engineSparePartRepository.findById(engineId)).thenReturn(engine);
@@ -102,13 +99,13 @@ public class CustomCarModelOrderServiceTest {
         when(interiorSparePartRepository.findById(interiorId)).thenReturn(interior);
         when(wheelsSparePartRepository.findById(wheelsId)).thenReturn(wheels);
 
-        when(carModel.getBasePrice()).thenReturn(new Money(100500));
-        when(body.getPrice()).thenReturn(new Money(100));
-        when(engine.getPrice()).thenReturn(new Money(100));
-        when(interior.getPrice()).thenReturn(new Money(100));
-        when(wheels.getPrice()).thenReturn(new Money(100));
-        when(steeringWheel.getPrice()).thenReturn(new Money(100));
-        when(gearbox.getPrice()).thenReturn(new Money(100));
+        when(carModel.getBasePrice()).thenReturn(new Money(3_000_000));
+        when(body.getPrice()).thenReturn(Money.ZERO);
+        when(engine.getPrice()).thenReturn(Money.ZERO);
+        when(interior.getPrice()).thenReturn(new Money(110_000));
+        when(wheels.getPrice()).thenReturn(new Money(95_000));
+        when(steeringWheel.getPrice()).thenReturn(new Money(25_000));
+        when(gearbox.getPrice()).thenReturn(Money.ZERO);
 
         when(body.getCompatibleCars()).thenReturn(Set.of(carModelId));
         when(engine.getCompatibleCars()).thenReturn(Set.of(carModelId));
@@ -118,15 +115,25 @@ public class CustomCarModelOrderServiceTest {
         when(gearbox.getCompatibleCars()).thenReturn(Set.of(carModelId));
 
         when(carModel.getId()).thenReturn(carModelId);
+        when(employee.getId()).thenReturn(employeeId);
+        when(employeeAssignment.assignSalesManager()).thenReturn(employee);
+        when(orderCustomCarRepository.save(any(OrderCustomCarModel.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0, OrderCustomCarModel.class).getId());
 
-        when(orderCustomCarRepository.save(any(OrderCustomCarModel.class))).thenReturn(expectedSavedOrderId);
+        UUID actualSavedOrderId = customCarModelOrderService.createOrder(clientId, carModelId, bodyId,
+                engineId, gearboxId, steeringWheelId, interiorId, wheelsId);
 
-        UUID actualSavedOrderId = customCarModelOrderService.createOrder(employeeId, clientId, carModelId, bodyId,
-                                                    engineId, gearboxId, steeringWheelId, interiorId, wheelsId );
+        ArgumentCaptor<OrderCustomCarModel> savedOrder = ArgumentCaptor.forClass(OrderCustomCarModel.class);
+        verify(orderCustomCarRepository).save(savedOrder.capture());
 
-        Assertions.assertEquals(expectedSavedOrderId, actualSavedOrderId);
+        Assertions.assertEquals(actualSavedOrderId, savedOrder.getValue().getId());
+        Assertions.assertEquals(employeeId, savedOrder.getValue().getEmployeeId());
+        Assertions.assertEquals(clientId, savedOrder.getValue().getClientId());
+        Assertions.assertEquals(CustomCarOrderStatus.PLACED, savedOrder.getValue().getStatus());
+        Assertions.assertEquals(new Money(3_230_000), savedOrder.getValue().getPriceAtCreateOrderMoment());
 
-        verify(orderCustomCarRepository).save(any(OrderCustomCarModel.class));
+        verify(clientRepository).findById(clientId);
+        verify(employeeAssignment).assignSalesManager();
         verify(carModelRepository).findById(carModelId);
         verify(bodySparePartRepository).findById(bodyId);
         verify(engineSparePartRepository).findById(engineId);
@@ -137,8 +144,63 @@ public class CustomCarModelOrderServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenCreateOrder() {
-        UUID employeeId = UUID.randomUUID();
+    void shouldApplyNegativeSurchargeToConfigurationPrice() {
+        UUID clientId = UUID.randomUUID();
+        UUID carModelId = UUID.randomUUID();
+        UUID bodyId = UUID.randomUUID();
+        UUID engineId = UUID.randomUUID();
+        UUID gearboxId = UUID.randomUUID();
+        UUID steeringWheelId = UUID.randomUUID();
+        UUID interiorId = UUID.randomUUID();
+        UUID wheelsId = UUID.randomUUID();
+
+        CarModel carModel = mock(CarModel.class);
+        Body body = mock(Body.class);
+        Engine engine = mock(Engine.class);
+        Interior interior = mock(Interior.class);
+        Wheels wheels = mock(Wheels.class);
+        SteeringWheel steeringWheel = mock(SteeringWheel.class);
+        Gearbox gearbox = mock(Gearbox.class);
+        Employee employee = mock(Employee.class);
+
+        when(carModelRepository.findById(carModelId)).thenReturn(carModel);
+        when(bodySparePartRepository.findById(bodyId)).thenReturn(body);
+        when(engineSparePartRepository.findById(engineId)).thenReturn(engine);
+        when(gearboxSparePartRepository.findById(gearboxId)).thenReturn(gearbox);
+        when(steeringWheelSparePartRepository.findById(steeringWheelId)).thenReturn(steeringWheel);
+        when(interiorSparePartRepository.findById(interiorId)).thenReturn(interior);
+        when(wheelsSparePartRepository.findById(wheelsId)).thenReturn(wheels);
+
+        when(carModel.getBasePrice()).thenReturn(new Money(3_000_000));
+        when(body.getPrice()).thenReturn(Money.ZERO);
+        when(engine.getPrice()).thenReturn(Money.ZERO);
+        when(interior.getPrice()).thenReturn(Money.ZERO);
+        when(wheels.getPrice()).thenReturn(Money.ZERO);
+        when(steeringWheel.getPrice()).thenReturn(Money.ZERO);
+        when(gearbox.getPrice()).thenReturn(new Money(-30_000));
+
+        when(body.getCompatibleCars()).thenReturn(Set.of(carModelId));
+        when(engine.getCompatibleCars()).thenReturn(Set.of(carModelId));
+        when(interior.getCompatibleCars()).thenReturn(Set.of(carModelId));
+        when(wheels.getCompatibleCars()).thenReturn(Set.of(carModelId));
+        when(steeringWheel.getCompatibleCars()).thenReturn(Set.of(carModelId));
+        when(gearbox.getCompatibleCars()).thenReturn(Set.of(carModelId));
+
+        when(carModel.getId()).thenReturn(carModelId);
+        when(employee.getId()).thenReturn(UUID.randomUUID());
+        when(employeeAssignment.assignSalesManager()).thenReturn(employee);
+
+        customCarModelOrderService.createOrder(clientId, carModelId, bodyId, engineId, gearboxId,
+                steeringWheelId, interiorId, wheelsId);
+
+        ArgumentCaptor<OrderCustomCarModel> savedOrder = ArgumentCaptor.forClass(OrderCustomCarModel.class);
+        verify(orderCustomCarRepository).save(savedOrder.capture());
+
+        Assertions.assertEquals(new Money(2_970_000), savedOrder.getValue().getPriceAtCreateOrderMoment());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenComponentIsNotCompatible() {
         UUID clientId = UUID.randomUUID();
         UUID carModelId = UUID.randomUUID();
         UUID bodyId = UUID.randomUUID();
@@ -150,8 +212,6 @@ public class CustomCarModelOrderServiceTest {
 
         UUID fakeCarModelId = UUID.randomUUID();
 
-        Employee employee = mock(Employee.class);
-        Client client = mock(Client.class);
         CarModel carModel = mock(CarModel.class);
         Body body = mock(Body.class);
         Engine engine = mock(Engine.class);
@@ -160,9 +220,6 @@ public class CustomCarModelOrderServiceTest {
         SteeringWheel steeringWheel = mock(SteeringWheel.class);
         Gearbox gearbox = mock(Gearbox.class);
 
-
-        when(employeeRepository.findById(employeeId)).thenReturn(employee);
-        when(clientRepository.findById(clientId)).thenReturn(client);
         when(carModelRepository.findById(carModelId)).thenReturn(carModel);
         when(bodySparePartRepository.findById(bodyId)).thenReturn(body);
         when(engineSparePartRepository.findById(engineId)).thenReturn(engine);
@@ -180,12 +237,64 @@ public class CustomCarModelOrderServiceTest {
 
         when(carModel.getId()).thenReturn(carModelId);
 
-
         Assertions.assertThrows(
                 IncompatibleComponentException.class,
-                () -> customCarModelOrderService.createOrder(employeeId, clientId, carModelId, bodyId,
-                        engineId, gearboxId, steeringWheelId, interiorId, wheelsId )
+                () -> customCarModelOrderService.createOrder(clientId, carModelId, bodyId,
+                        engineId, gearboxId, steeringWheelId, interiorId, wheelsId)
         );
+
+        verify(orderCustomCarRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenRequiredNodeIsMissing() {
+        DomainValidationException exception = Assertions.assertThrows(
+                DomainValidationException.class,
+                () -> customCarModelOrderService.createOrder(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
+                        UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), null, UUID.randomUUID())
+        );
+
+        Assertions.assertTrue(exception.getMessage().contains("Interior"));
+        verify(orderCustomCarRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldChangeOrderStatusByRoute() {
+        UUID orderId = UUID.randomUUID();
+        OrderCustomCarModel order = customOrder(orderId);
+
+        when(orderCustomCarRepository.findById(orderId)).thenReturn(order);
+
+        customCarModelOrderService.changeStatus(orderId, CustomCarOrderStatus.APPROVED_BY_WAREHOUSE);
+
+        Assertions.assertEquals(CustomCarOrderStatus.APPROVED_BY_WAREHOUSE, order.getStatus());
+        verify(orderCustomCarRepository).save(order);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenStatusRouteIsNotAllowed() {
+        UUID orderId = UUID.randomUUID();
+        OrderCustomCarModel order = customOrder(orderId);
+
+        when(orderCustomCarRepository.findById(orderId)).thenReturn(order);
+
+        Assertions.assertThrows(
+                DomainValidationException.class,
+                () -> customCarModelOrderService.changeStatus(orderId, CustomCarOrderStatus.AWAITING_DELIVERY)
+        );
+
+        Assertions.assertEquals(CustomCarOrderStatus.PLACED, order.getStatus());
+        verify(orderCustomCarRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldDeleteOrder() {
+        UUID orderId = UUID.randomUUID();
+        when(orderCustomCarRepository.findById(orderId)).thenReturn(mock(OrderCustomCarModel.class));
+
+        customCarModelOrderService.deleteById(orderId);
+
+        verify(orderCustomCarRepository).deleteById(orderId);
     }
 
     @Test
@@ -204,6 +313,14 @@ public class CustomCarModelOrderServiceTest {
         Assertions.assertEquals(orderCustomCarModels.size(), result.size());
         Assertions.assertEquals(orderCustomCarModels, result);
         verify(orderCustomCarRepository).findAll();
+    }
+
+    @Test
+    void shouldReturnAllWithoutFilter() {
+        OrderCustomCarModel order = mock(OrderCustomCarModel.class);
+        when(orderCustomCarRepository.findAll()).thenReturn(List.of(order));
+
+        Assertions.assertEquals(List.of(order), customCarModelOrderService.findAll());
     }
 
     @Test
@@ -227,9 +344,7 @@ public class CustomCarModelOrderServiceTest {
 
         List<OrderCustomCarModel> expected = List.of(orderCustomCarModel2);
 
-
         List<OrderCustomCarModel> result = customCarModelOrderService.findAll(orderFilter);
-
 
         Assertions.assertEquals(expected, result);
     }
@@ -242,7 +357,6 @@ public class CustomCarModelOrderServiceTest {
 
         UUID clientId2 = UUID.randomUUID();
         UUID clientId5 = UUID.randomUUID();
-
 
         OrderFilter orderFilter = new OrderFilter()
                 .withClientId(clientId5)
@@ -257,7 +371,6 @@ public class CustomCarModelOrderServiceTest {
         OrderCustomCarModel orderReadyCarModel4 = mock(OrderCustomCarModel.class);
         OrderCustomCarModel orderReadyCarModel5 = mock(OrderCustomCarModel.class);
         OrderCustomCarModel orderReadyCarModel6 = mock(OrderCustomCarModel.class);
-
 
         when(orderReadyCarModel1.getEmployeeId()).thenReturn(employeeId1);
         when(orderReadyCarModel2.getEmployeeId()).thenReturn(employeeId2);
@@ -274,10 +387,14 @@ public class CustomCarModelOrderServiceTest {
 
         List<OrderCustomCarModel> expected = List.of(orderReadyCarModel5);
 
-
         List<OrderCustomCarModel> result = customCarModelOrderService.findAll(orderFilter);
 
-
         Assertions.assertEquals(expected, result);
+    }
+
+    private OrderCustomCarModel customOrder(UUID orderId) {
+        return new OrderCustomCarModel(orderId, UUID.randomUUID(), UUID.randomUUID(), mock(CarModel.class),
+                mock(Body.class), mock(Engine.class), mock(Gearbox.class), mock(SteeringWheel.class),
+                mock(Interior.class), mock(Wheels.class), new Money(100));
     }
 }

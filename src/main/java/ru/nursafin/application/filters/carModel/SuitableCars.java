@@ -13,24 +13,30 @@ public class SuitableCars {
         this.carModelRepository = carModelRepository;
     }
 
-    public List<CarModel> GetSuitableCars(CarModelFilter filter) {
+    public List<CarModel> getSuitableCars(CarModelFilter filter) {
+        filter.validate();
+
         return carModelRepository.findAll().stream()
                 .filter(carModel -> filter.getMinBasePrice() == null ||
                         carModel.getBasePrice().compareTo(filter.getMinBasePrice()) >= 0)
                 .filter(carModel -> filter.getMaxBasePrice() == null ||
                         carModel.getBasePrice().compareTo(filter.getMaxBasePrice()) <= 0)
                 .filter(carModel -> filter.getMinTotalPrice() == null ||
-                        CalculateTotalPrice(carModel).compareTo(filter.getMinTotalPrice()) >= 0)
+                        calculateTotalPrice(carModel).compareTo(filter.getMinTotalPrice()) >= 0)
                 .filter(carModel -> filter.getMaxTotalPrice() == null ||
-                        CalculateTotalPrice(carModel).compareTo(filter.getMaxTotalPrice()) <= 0)
+                        calculateTotalPrice(carModel).compareTo(filter.getMaxTotalPrice()) <= 0)
                 .filter(carModel -> filter.getBrand() == null ||
                         carModel.getBrand().equalsIgnoreCase(filter.getBrand()))
+                .filter(carModel -> filter.getModel() == null ||
+                        carModel.getName().equalsIgnoreCase(filter.getModel()))
+                .filter(carModel -> filter.getColor() == null ||
+                        carModel.getColor().equalsIgnoreCase(filter.getColor()))
                 .filter(carModel -> filter.getBodyType() == null ||
                         carModel.getBody().getBodyType() == filter.getBodyType())
                 .filter(carModel -> filter.getFuelType() == null ||
                         carModel.getEngine().getFuelType() == filter.getFuelType())
-                    .filter(carModel -> filter.getGearboxType() == null ||
-                        carModel.getGearbox().getGearboxType()== filter.getGearboxType())
+                .filter(carModel -> filter.getGearboxType() == null ||
+                        carModel.getGearbox().getGearboxType() == filter.getGearboxType())
                 .filter(carModel -> filter.getDrive() == null ||
                         carModel.getDrive() == filter.getDrive())
                 .filter(carModel -> filter.getInteriorColor() == null ||
@@ -39,10 +45,14 @@ public class SuitableCars {
                         carModel.getEngine().getPower().compareTo(filter.getMinPower()) >= 0)
                 .filter(carModel -> filter.getMaxPower() == null ||
                         carModel.getEngine().getPower().compareTo(filter.getMaxPower()) <= 0)
+                .filter(carModel -> filter.getMinEngineDisplacement() == null ||
+                        carModel.getEngine().getEngineDisplacement().compareTo(filter.getMinEngineDisplacement()) >= 0)
+                .filter(carModel -> filter.getMaxEngineDisplacement() == null ||
+                        carModel.getEngine().getEngineDisplacement().compareTo(filter.getMaxEngineDisplacement()) <= 0)
                 .toList();
     }
 
-    private Money CalculateTotalPrice(CarModel carModel) {
+    private Money calculateTotalPrice(CarModel carModel) {
         return carModel.getBasePrice()
                 .plus(carModel.getBody().getPrice())
                 .plus(carModel.getEngine().getPrice())

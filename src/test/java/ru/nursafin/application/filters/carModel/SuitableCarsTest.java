@@ -44,7 +44,7 @@ public class SuitableCarsTest {
         when(carModelRepository.findAll()).thenReturn(List.of(carModel1, carModel2, carModel3));
 
 
-        List<CarModel> carModels = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> carModels = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(List.of(carModel1, carModel2, carModel3), carModels);
@@ -74,7 +74,7 @@ public class SuitableCarsTest {
                 .withMaxBasePrice(maxBasePriceFilter);
 
 
-        List<CarModel> carModels = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> carModels = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(List.of(carModel1), carModels);
@@ -104,7 +104,7 @@ public class SuitableCarsTest {
                 .withMaxBasePrice(maxBasePriceFilter);
 
 
-        List<CarModel> carModels = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> carModels = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(List.of(carModel1, carModel2), carModels);
@@ -178,7 +178,7 @@ public class SuitableCarsTest {
         List<CarModel> expected = List.of(carModel2);
 
 
-        List<CarModel> actual = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> actual = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(expected, actual);
@@ -252,7 +252,7 @@ public class SuitableCarsTest {
         List<CarModel> expected = List.of(carModel2, carModel3);
 
 
-        List<CarModel> actual = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> actual = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(expected, actual);
@@ -280,7 +280,7 @@ public class SuitableCarsTest {
         List<CarModel> expected = List.of(carModel1);
 
 
-        List<CarModel> actual = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> actual = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(expected, actual);
@@ -308,7 +308,7 @@ public class SuitableCarsTest {
         List<CarModel> expected = List.of(carModel1);
 
 
-        List<CarModel> actual = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> actual = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(expected, actual);
@@ -344,7 +344,7 @@ public class SuitableCarsTest {
         List<CarModel> expected = List.of(carModel1);
 
 
-        List<CarModel> actual = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> actual = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(expected, actual);
@@ -380,7 +380,7 @@ public class SuitableCarsTest {
         List<CarModel> expected = List.of(carModel3);
 
 
-        List<CarModel> actual = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> actual = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(expected, actual);
@@ -416,7 +416,7 @@ public class SuitableCarsTest {
         List<CarModel> expected = List.of(carModel2);
 
 
-        List<CarModel> actual = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> actual = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(expected, actual);
@@ -444,7 +444,7 @@ public class SuitableCarsTest {
         List<CarModel> expected = List.of(carModel2, carModel3);
 
 
-        List<CarModel> actual = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> actual = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(expected, actual);
@@ -490,7 +490,7 @@ public class SuitableCarsTest {
         List<CarModel> expected = List.of(carModel2, carModel4, carModel5);
 
 
-        List<CarModel> actual = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> actual = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(expected, actual);
@@ -527,7 +527,7 @@ public class SuitableCarsTest {
         List<CarModel> expected = List.of(carModel1);
 
 
-        List<CarModel> actual = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> actual = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(expected, actual);
@@ -564,7 +564,7 @@ public class SuitableCarsTest {
         List<CarModel> expected = List.of(carModel2, carModel3);
 
 
-        List<CarModel> actual = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> actual = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(expected, actual);
@@ -626,7 +626,7 @@ public class SuitableCarsTest {
         List<CarModel> expected = List.of(carModel4);
 
 
-        List<CarModel> actual = suitableCars.GetSuitableCars(carModelFilter);
+        List<CarModel> actual = suitableCars.getSuitableCars(carModelFilter);
 
 
         Assertions.assertEquals(expected, actual);

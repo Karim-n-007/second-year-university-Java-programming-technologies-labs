@@ -16,10 +16,15 @@ public class Wheels implements SparePart {
     private final Set<UUID> compatibleCarModelsId = new HashSet<>();
 
     public Wheels(WheelSeason season, UUID id, String name, Money price) {
+        this(season, id, name, price, Set.of());
+    }
+
+    public Wheels(WheelSeason season, UUID id, String name, Money price, Set<UUID> compatibleCarModelsId) {
         this.season = season;
         this.id = id;
         this.name = name;
         this.price = price;
+        this.compatibleCarModelsId.addAll(compatibleCarModelsId);
     }
 
     @Override
@@ -49,7 +54,7 @@ public class Wheels implements SparePart {
 
     @Override
     public Set<UUID> getCompatibleCars() {
-        return compatibleCarModelsId;
+        return Set.copyOf(compatibleCarModelsId);
     }
 
     public WheelSeason getSeason() {

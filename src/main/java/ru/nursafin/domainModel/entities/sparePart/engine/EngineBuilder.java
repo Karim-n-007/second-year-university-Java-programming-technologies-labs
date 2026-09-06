@@ -90,6 +90,6 @@ public class EngineBuilder {
             throw new DomainValidationException("some information is null");
         }
 
-        return new Engine(power, displacement, fuelType, id, name, price);
+        return new Engine(power, displacement, fuelType, id, name, price, compatibleCarModelsId);
     }
 }

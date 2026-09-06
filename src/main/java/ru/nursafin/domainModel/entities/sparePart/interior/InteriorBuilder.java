@@ -77,6 +77,6 @@ public class InteriorBuilder {
             throw new DomainValidationException("some information is null");
         }
 
-        return new Interior(type, color, id, name, price);
+        return new Interior(type, color, id, name, price, compatibleCarModelsId);
     }
 }

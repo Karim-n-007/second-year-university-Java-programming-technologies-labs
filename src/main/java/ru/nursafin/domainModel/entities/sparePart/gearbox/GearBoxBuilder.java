@@ -67,6 +67,6 @@ public class GearBoxBuilder {
             throw new DomainValidationException("some information is null");
         }
 
-        return new Gearbox(type, id, name, price);
+        return new Gearbox(type, id, name, price, compatibleCarModelsId);
     }
 }

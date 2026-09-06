@@ -16,10 +16,15 @@ public class Body implements SparePart {
     private final Set<UUID> compatibleCarModelsId = new HashSet<>();
 
     public Body(BodyType bodyType, UUID id, String name, Money price) {
+        this(bodyType, id, name, price, Set.of());
+    }
+
+    public Body(BodyType bodyType, UUID id, String name, Money price, Set<UUID> compatibleCarModelsId) {
         this.bodyType = bodyType;
         this.id = id;
         this.name = name;
         this.price = price;
+        this.compatibleCarModelsId.addAll(compatibleCarModelsId);
     }
 
     @Override
@@ -49,7 +54,7 @@ public class Body implements SparePart {
 
     @Override
     public Set<UUID> getCompatibleCars() {
-        return compatibleCarModelsId;
+        return Set.copyOf(compatibleCarModelsId);
     }
 
     public BodyType getBodyType() {

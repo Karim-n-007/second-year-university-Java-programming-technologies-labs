@@ -16,6 +16,7 @@ public class CarModelBuilder {
     private UUID id = null;
     private String name = null;
     private String brand = null;
+    private String color = null;
     private Money price = null;
     private Drive drive = null;
 
@@ -53,9 +54,21 @@ public class CarModelBuilder {
         return this;
     }
 
+    public CarModelBuilder withColor(String color) {
+        if (color == null || color.isBlank()) {
+            throw new DomainValidationException("color is null");
+        }
+        this.color = color;
+
+        return this;
+    }
+
     public CarModelBuilder withPrice(Money price) {
         if (price == null) {
             throw new DomainValidationException("price is null");
+        }
+        if (price.isNegative()) {
+            throw new DomainValidationException("base price cannot be negative");
         }
         this.price = price;
 
@@ -126,13 +139,13 @@ public class CarModelBuilder {
     }
 
     public CarModel build() {
-        if (id == null || name == null || brand == null ||
+        if (id == null || name == null || brand == null || color == null ||
                 price == null || drive == null || body == null ||
                 engine == null || gearbox == null || steeringWheel == null ||
                 interior == null || wheels == null) {
             throw new DomainValidationException("one or more value is null");
         }
 
-        return new CarModel(id, name, brand, price, drive, body, engine, gearbox, steeringWheel, interior, wheels);
+        return new CarModel(id, name, brand, color, price, drive, body, engine, gearbox, steeringWheel, interior, wheels);
     }
 }
